@@ -42,6 +42,11 @@ def demo_simple():
             if save in ['o', 'oui', 'y', 'yes']:
                 runner.save_results("mes_resultats.json")
 
+            # Proposer d'exporter en HTML
+            html_export = input("\n🌐 Voulez-vous exporter le quiz en HTML? (o/n): ").strip().lower()
+            if html_export in ['o', 'oui', 'y', 'yes']:
+                runner.export_html_quiz("quiz_simple.html")
+
 
 def demo_filtres():
     """Démonstration avec filtres: quiz ciblé par difficulté ou section."""
@@ -169,6 +174,39 @@ def demo_personnalise():
                 runner.save_results(filename)
 
 
+def demo_html_export():
+    """Démonstration de l'export HTML."""
+    print("="*60)
+    print("🌐 DÉMONSTRATION EXPORT HTML")
+    print("="*60)
+
+    runner = QuizRunner()
+
+    # Charger les questions
+    if not runner.load_questions("example_python_questions.csv"):
+        print("❌ Impossible de charger les questions.")
+        return
+
+    print("\n📋 Options d'export HTML:")
+    print("1. Toutes les questions sur une page (défaut)")
+    print("2. 5 questions par page")
+    print("3. 10 questions par page")
+
+    choice = input("\nVotre choix (1-3): ").strip()
+
+    if choice == '1':
+        runner.create_quiz(num_questions=10)
+        runner.export_html_quiz("quiz_demo.html")
+    elif choice == '2':
+        runner.create_quiz(num_questions=10)
+        runner.export_html_quiz("quiz_demo.html", questions_per_page=5)
+    elif choice == '3':
+        runner.create_quiz(num_questions=10)
+        runner.export_html_quiz("quiz_demo.html", questions_per_page=10)
+    else:
+        print("⚠️  Choix invalide")
+
+
 def main():
     """Menu principal."""
     while True:
@@ -179,11 +217,12 @@ def main():
         print("1. Démonstration simple (5 questions aléatoires)")
         print("2. Démonstration avec filtres (menu interactif)")
         print("3. Quiz personnalisé (configuration complète)")
-        print("4. Quitter")
+        print("4. Export HTML (créer un quiz web interactif)")
+        print("5. Quitter")
         print("="*60)
-        
-        choice = input("\nVotre choix (1-4): ").strip()
-        
+
+        choice = input("\nVotre choix (1-5): ").strip()
+
         if choice == '1':
             demo_simple()
         elif choice == '2':
@@ -191,10 +230,12 @@ def main():
         elif choice == '3':
             demo_personnalise()
         elif choice == '4':
+            demo_html_export()
+        elif choice == '5':
             print("\n👋 Merci d'avoir utilisé le système de quiz!")
             break
         else:
-            print("⚠️  Choix invalide, veuillez entrer 1, 2, 3 ou 4")
+            print("⚠️  Choix invalide, veuillez entrer 1-5")
 
 
 if __name__ == "__main__":
