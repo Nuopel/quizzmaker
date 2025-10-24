@@ -82,9 +82,12 @@ class HTMLQuizExporter:
         </div>
 
         <div id="navigation">
-            <button id="prev-btn" onclick="previousPage()">← Previous Page</button>
-            <span id="page-info"></span>
-            <button id="next-btn" onclick="nextPage()">Next Page →</button>
+            <div id="page-navigation">
+                <button id="prev-btn" onclick="previousPage()">← Previous Page</button>
+                <span id="page-info"></span>
+                <button id="next-btn" onclick="nextPage()">Next Page →</button>
+            </div>
+            <button id="submit-all-btn" onclick="showResults()" class="submit-all-btn">🎯 Submit All & Review</button>
         </div>
 
         <div id="results-container" style="display: none;">
@@ -164,6 +167,26 @@ class HTMLQuizExporter:
             color: #666;
             font-size: 1.1em;
             margin-top: 10px;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 20px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.85em;
+            font-weight: 600;
         }
 
         .question-card {
@@ -363,6 +386,16 @@ class HTMLQuizExporter:
             margin-top: 40px;
             padding-top: 20px;
             border-top: 2px solid #e0e0e0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        #page-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex: 1;
         }
 
         #navigation button {
@@ -506,6 +539,37 @@ class HTMLQuizExporter:
         .hidden {
             display: none !important;
         }
+
+        .submit-all-btn {
+            background: #28a745 !important;
+            margin-left: 20px;
+        }
+
+        .submit-all-btn:hover:not(:disabled) {
+            background: #218838 !important;
+        }
+
+        .restart-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .restart-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
         """
 
     def _get_javascript(self) -> str:
@@ -531,9 +595,23 @@ class HTMLQuizExporter:
                 };
             });
 
-            // Update quiz info
-            document.getElementById('quiz-info').innerHTML =
-                `Total Questions: ${questions.length} | Pages: ${totalPages}`;
+            // Update quiz info with progress bar
+            updateQuizInfo();
+        }
+
+        function updateQuizInfo() {
+            const answered = Object.values(userAnswers).filter(state => state.submitted).length;
+            const total = questions.length;
+            const percentage = total > 0 ? (answered / total * 100).toFixed(0) : 0;
+
+            document.getElementById('quiz-info').innerHTML = `
+                <div>Total Questions: ${total} | Pages: ${totalPages} | Answered: ${answered}/${total}</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${percentage}%">
+                        ${percentage}%
+                    </div>
+                </div>
+            `;
         }
 
         function renderCurrentPage() {
@@ -727,6 +805,9 @@ class HTMLQuizExporter:
                 });
             }
 
+            // Update progress indicator
+            updateQuizInfo();
+
             // Check if all questions answered
             checkQuizCompletion();
         }
@@ -763,18 +844,49 @@ class HTMLQuizExporter:
         function showResults() {
             // Calculate score
             const totalQuestions = questions.length;
+            const answeredQuestions = Object.values(userAnswers).filter(state => state.submitted).length;
+            const unansweredQuestions = totalQuestions - answeredQuestions;
             const correctAnswers = Object.values(userAnswers).filter(state => state.isCorrect).length;
-            const percentage = ((correctAnswers / totalQuestions) * 100).toFixed(1);
+            const incorrectAnswers = answeredQuestions - correctAnswers;
+            const percentage = answeredQuestions > 0 ? ((correctAnswers / answeredQuestions) * 100).toFixed(1) : 0;
+            const overallPercentage = ((correctAnswers / totalQuestions) * 100).toFixed(1);
 
             // Calculate performance by difficulty
             const byDifficulty = {};
             questions.forEach(q => {
                 if (!byDifficulty[q.difficulty]) {
-                    byDifficulty[q.difficulty] = { correct: 0, total: 0 };
+                    byDifficulty[q.difficulty] = { correct: 0, incorrect: 0, unanswered: 0, total: 0 };
                 }
                 byDifficulty[q.difficulty].total++;
-                if (userAnswers[q.id].isCorrect) {
-                    byDifficulty[q.difficulty].correct++;
+                const state = userAnswers[q.id];
+                if (state.submitted) {
+                    if (state.isCorrect) {
+                        byDifficulty[q.difficulty].correct++;
+                    } else {
+                        byDifficulty[q.difficulty].incorrect++;
+                    }
+                } else {
+                    byDifficulty[q.difficulty].unanswered++;
+                }
+            });
+
+            // Calculate performance by section
+            const bySection = {};
+            questions.forEach(q => {
+                const sectionKey = `${q.section}: ${q.section_title}`;
+                if (!bySection[sectionKey]) {
+                    bySection[sectionKey] = { correct: 0, incorrect: 0, unanswered: 0, total: 0 };
+                }
+                bySection[sectionKey].total++;
+                const state = userAnswers[q.id];
+                if (state.submitted) {
+                    if (state.isCorrect) {
+                        bySection[sectionKey].correct++;
+                    } else {
+                        bySection[sectionKey].incorrect++;
+                    }
+                } else {
+                    bySection[sectionKey].unanswered++;
                 }
             });
 
@@ -790,9 +902,33 @@ class HTMLQuizExporter:
             let resultsHTML = `
                 <div class="score-summary">
                     <h3>Your Score</h3>
-                    <div class="score">${correctAnswers} / ${totalQuestions}</div>
-                    <div class="percentage">${percentage}%</div>
+                    <div class="score">${correctAnswers} / ${answeredQuestions}</div>
+                    <div class="percentage">${percentage}% ${answeredQuestions < totalQuestions ? '(of answered)' : ''}</div>
                     <p style="font-size: 1.5em; margin-top: 20px;">${rating}</p>
+                    ${unansweredQuestions > 0 ? `<p style="font-size: 1.2em; color: #ffc107;">⚠️ ${unansweredQuestions} question${unansweredQuestions > 1 ? 's' : ''} not answered</p>` : ''}
+                </div>
+
+                <div class="performance-breakdown">
+                    <h3>📈 Overall Statistics</h3>
+                    <div class="difficulty-stats">
+                        <div class="stat-card">
+                            <h4>Total Questions</h4>
+                            <div class="stat-value">${totalQuestions}</div>
+                        </div>
+                        <div class="stat-card" style="border-left-color: #28a745;">
+                            <h4>Correct</h4>
+                            <div class="stat-value" style="color: #28a745;">✓ ${correctAnswers}</div>
+                        </div>
+                        <div class="stat-card" style="border-left-color: #dc3545;">
+                            <h4>Incorrect</h4>
+                            <div class="stat-value" style="color: #dc3545;">✗ ${incorrectAnswers}</div>
+                        </div>
+                        ${unansweredQuestions > 0 ? `
+                        <div class="stat-card" style="border-left-color: #ffc107;">
+                            <h4>Unanswered</h4>
+                            <div class="stat-value" style="color: #ffc107;">- ${unansweredQuestions}</div>
+                        </div>` : ''}
+                    </div>
                 </div>
 
                 <div class="performance-breakdown">
@@ -802,12 +938,37 @@ class HTMLQuizExporter:
 
             Object.keys(byDifficulty).sort().forEach(difficulty => {
                 const stats = byDifficulty[difficulty];
-                const percent = ((stats.correct / stats.total) * 100).toFixed(0);
+                const answered = stats.correct + stats.incorrect;
+                const percent = answered > 0 ? ((stats.correct / answered) * 100).toFixed(0) : 0;
                 resultsHTML += `
                     <div class="stat-card">
                         <h4>${difficulty}</h4>
-                        <div class="stat-value">${stats.correct}/${stats.total}</div>
-                        <p style="color: #666; margin-top: 5px;">${percent}%</p>
+                        <div class="stat-value">${stats.correct}/${answered}</div>
+                        <p style="color: #666; margin-top: 5px;">${percent}% correct</p>
+                        ${stats.unanswered > 0 ? `<p style="color: #ffc107; font-size: 0.9em;">${stats.unanswered} unanswered</p>` : ''}
+                    </div>
+                `;
+            });
+
+            resultsHTML += `
+                    </div>
+                </div>
+
+                <div class="performance-breakdown">
+                    <h3>📚 Performance by Section</h3>
+                    <div class="difficulty-stats">
+            `;
+
+            Object.keys(bySection).forEach(section => {
+                const stats = bySection[section];
+                const answered = stats.correct + stats.incorrect;
+                const percent = answered > 0 ? ((stats.correct / answered) * 100).toFixed(0) : 0;
+                resultsHTML += `
+                    <div class="stat-card">
+                        <h4>${section}</h4>
+                        <div class="stat-value">${stats.correct}/${answered}</div>
+                        <p style="color: #666; margin-top: 5px;">${percent}% correct</p>
+                        ${stats.unanswered > 0 ? `<p style="color: #ffc107; font-size: 0.9em;">${stats.unanswered} unanswered</p>` : ''}
                     </div>
                 `;
             });
@@ -822,19 +983,40 @@ class HTMLQuizExporter:
 
             questions.forEach((q, idx) => {
                 const state = userAnswers[q.id];
-                const resultClass = state.isCorrect ? 'correct' : 'incorrect';
-                const icon = state.isCorrect ? '✓' : '✗';
+                let resultClass, icon, statusText;
+
+                if (!state.submitted) {
+                    resultClass = '';
+                    icon = '-';
+                    statusText = 'Not answered';
+                } else if (state.isCorrect) {
+                    resultClass = 'correct';
+                    icon = '✓';
+                    statusText = '';
+                } else {
+                    resultClass = 'incorrect';
+                    icon = '✗';
+                    statusText = '';
+                }
 
                 resultsHTML += `
                     <div class="review-item ${resultClass}">
                         <div class="review-question">${icon} Question ${idx + 1}: ${q.question}</div>
-                        <div class="review-answer">Your answer: <strong>${state.answer}</strong></div>
-                        ${!state.isCorrect ? `<div class="review-answer">Correct answer: <strong>${q.answer}</strong></div>` : ''}
+                        ${state.submitted ? `
+                            <div class="review-answer">Your answer: <strong>${state.answer}</strong></div>
+                            ${!state.isCorrect ? `<div class="review-answer">Correct answer: <strong>${q.answer}</strong></div>` : ''}
+                        ` : `
+                            <div class="review-answer" style="color: #ffc107;"><strong>${statusText}</strong></div>
+                            <div class="review-answer">Correct answer: <strong>${q.answer}</strong></div>
+                        `}
                     </div>
                 `;
             });
 
-            resultsHTML += '</div>';
+            resultsHTML += `
+                </div>
+                <button class="restart-btn" onclick="restartQuiz()">🔄 Restart Quiz</button>
+            `;
 
             // Hide quiz, show results
             document.getElementById('quiz-container').classList.add('hidden');
@@ -856,11 +1038,11 @@ class HTMLQuizExporter:
 
             pageInfo.textContent = `Page ${currentPage} / ${totalPages}`;
 
-            // Hide navigation if only one page
+            // Hide page navigation if only one page, but keep Submit All button visible
             if (totalPages === 1) {
-                document.getElementById('navigation').style.display = 'none';
+                document.getElementById('page-navigation').style.display = 'none';
             } else {
-                document.getElementById('navigation').style.display = 'flex';
+                document.getElementById('page-navigation').style.display = 'flex';
             }
         }
 
@@ -878,6 +1060,34 @@ class HTMLQuizExporter:
                 renderCurrentPage();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
+        }
+
+        function restartQuiz() {
+            // Reset all answers
+            questions.forEach(q => {
+                userAnswers[q.id] = {
+                    answer: null,
+                    isCorrect: false,
+                    submitted: false
+                };
+            });
+
+            // Reset UI
+            currentPage = 1;
+            document.getElementById('results-container').style.display = 'none';
+            document.getElementById('quiz-container').classList.remove('hidden');
+            document.getElementById('navigation').classList.remove('hidden');
+
+            // Remove "Show Results" button if it exists
+            const showResultsBtn = document.getElementById('show-results-btn');
+            if (showResultsBtn) {
+                showResultsBtn.remove();
+            }
+
+            // Re-render
+            updateQuizInfo();
+            renderCurrentPage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         """
 
