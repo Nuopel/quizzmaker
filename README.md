@@ -1,6 +1,6 @@
 # 🎓 Système de Quiz Interactif
 
-Un système modulaire et extensible pour créer et exécuter des quiz interactifs en ligne de commande.
+Un système modulaire et extensible pour créer et exécuter des quiz interactifs en ligne de commande.  C'est un refactoring d'un vieux projet en utilisant l'ia Claude. 
 
 ## 📋 Table des matières
 
@@ -63,11 +63,11 @@ quiz-system/
 
 ### Description des modules
 
-| Module | Responsabilité |
-|--------|----------------|
-| `models.py` | Définit les structures de données (Question, QuizResult, QuizSummary) |
-| `question_generator.py` | Création, validation et sauvegarde de questions |
-| `quiz_runner.py` | Chargement de questions, création et exécution de quiz |
+| Module                  | Responsabilité                                                        |
+| ----------------------- | --------------------------------------------------------------------- |
+| `models.py`             | Définit les structures de données (Question, QuizResult, QuizSummary) |
+| `question_generator.py` | Création, validation et sauvegarde de questions                       |
+| `quiz_runner.py`        | Chargement de questions, création et exécution de quiz                |
 
 ---
 
@@ -143,6 +143,7 @@ python example_run_quiz.py
 ```
 
 Ou choisir une démonstration spécifique :
+
 - **Démonstration simple** : Quiz rapide de 5 questions
 - **Démonstration avec filtres** : Menu interactif avec options de filtrage
 - **Quiz personnalisé** : Configuration complète des paramètres
@@ -187,17 +188,17 @@ print(f"Score: {summary.score}/{summary.total}")
 
 Les questions sont stockées dans un fichier CSV avec les colonnes suivantes :
 
-| Colonne | Type | Description |
-|---------|------|-------------|
-| `id` | int | Identifiant unique |
-| `section` | str | Numéro de section (ex: "1.1", "2.3") |
-| `section_title` | str | Titre de la section |
-| `difficulty` | str | "Easy", "Medium", ou "Hard" |
-| `type` | str | "Multiple Choice", "True/False", ou "Short Answer" |
-| `question` | str | Texte de la question |
-| `options` | JSON | Liste des options (format JSON string) |
-| `answer` | str | Réponse correcte |
-| `explanation` | str | Explication de la réponse |
+| Colonne         | Type | Description                                        |
+| --------------- | ---- | -------------------------------------------------- |
+| `id`            | int  | Identifiant unique                                 |
+| `section`       | str  | Numéro de section (ex: "1.1", "2.3")               |
+| `section_title` | str  | Titre de la section                                |
+| `difficulty`    | str  | "Easy", "Medium", ou "Hard"                        |
+| `type`          | str  | "Multiple Choice", "True/False", ou "Short Answer" |
+| `question`      | str  | Texte de la question                               |
+| `options`       | JSON | Liste des options (format JSON string)             |
+| `answer`        | str  | Réponse correcte                                   |
+| `explanation`   | str  | Explication de la réponse                          |
 
 ### Exemple CSV
 
@@ -349,6 +350,7 @@ print(runner.get_available_difficulties())
 ### Problème : Erreur lors de l'ajout d'une question
 
 **Solution** : Vérifiez que :
+
 - La difficulté est "Easy", "Medium" ou "Hard"
 - Pour Multiple Choice : la réponse est bien dans les options
 - Pour True/False : la réponse est "True" ou "False"
@@ -364,6 +366,7 @@ Ce projet est un outil éducatif libre d'utilisation.
 ## 🤝 Contribution
 
 Pour ajouter des fonctionnalités :
+
 1. Modèles de données → `models.py`
 2. Génération de questions → `question_generator.py`
 3. Exécution de quiz → `quiz_runner.py`
