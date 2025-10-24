@@ -10,6 +10,7 @@ Un système modulaire et extensible pour créer et exécuter des quiz interactif
 - [Guide d'utilisation](#-guide-dutilisation)
   - [Créer des questions](#1-créer-des-questions)
   - [Exécuter un quiz](#2-exécuter-un-quiz)
+  - [Exporter en HTML](#3-exporter-en-html)
 - [Format des questions](#-format-des-questions)
 - [Exemples](#-exemples)
 - [API](#-api)
@@ -20,10 +21,11 @@ Un système modulaire et extensible pour créer et exécuter des quiz interactif
 
 - ✅ **3 types de questions** : Choix multiple, Vrai/Faux, Réponse courte
 - 📊 **3 niveaux de difficulté** : Easy, Medium, Hard
-- 🔍 **Filtres avancés** : Par section, difficulté, ou les deux
+- 🔍 **Filtres avancés** : Par section, difficulté, type de question
 - 🎲 **Randomisation** : Questions et options mélangées aléatoirement
 - 📈 **Statistiques détaillées** : Performance par difficulté, score global
 - 💾 **Sauvegarde des résultats** : Export JSON des résultats de quiz
+- 🌐 **Export HTML** : Génération de quiz web interactifs avec pagination configurable
 - 🏗️ **Architecture modulaire** : Séparation claire des responsabilités
 - 🐼 **Format CSV** : Utilisation de pandas pour la gestion des données
 
@@ -47,18 +49,24 @@ pip install pandas
 ## 📁 Structure du projet
 
 ```
-quiz-system/
+quizzmaker/
 │
-├── models.py                      # Modèles de données (Question, QuizResult, QuizSummary)
-├── question_generator.py          # Générateur de questions
-├── quiz_runner.py                 # Exécuteur de quiz
+├── src/quizzmaker/
+│   ├── models.py                      # Modèles de données (Question, QuizResult, QuizSummary)
+│   ├── question_generator.py          # Générateur de questions
+│   ├── quiz_runner.py                 # Exécuteur de quiz
+│   ├── html_exporter.py               # Exporteur HTML (nouveau)
+│   └── __init__.py
 │
-├── example_create_questions.py    # Exemple : créer des questions
-├── example_run_quiz.py            # Exemple : exécuter un quiz
+├── examples/
+│   ├── example_create_questions.py    # Exemple : créer des questions
+│   ├── example_run_quiz.py            # Exemple : exécuter un quiz
+│   ├── example_html_export.py         # Exemple : export HTML interactif
+│   └── example_direct_html_export.py  # Exemple : export HTML direct (nouveau)
 │
-├── README.md                      # Documentation (ce fichier)
+├── README.md                          # Documentation (ce fichier)
 │
-└── *.csv                          # Bases de questions (générées)
+└── *.csv                              # Bases de questions (générées)
 ```
 
 ### Description des modules
@@ -68,6 +76,7 @@ quiz-system/
 | `models.py`             | Définit les structures de données (Question, QuizResult, QuizSummary) |
 | `question_generator.py` | Création, validation et sauvegarde de questions                       |
 | `quiz_runner.py`        | Chargement de questions, création et exécution de quiz                |
+| `html_exporter.py`      | Génération de quiz HTML interactifs avec pagination                   |
 
 ---
 
@@ -180,6 +189,74 @@ runner.save_results("resultats.json")
 print(f"Score: {summary.score}/{summary.total}")
 ```
 
+### 3. Exporter en HTML
+
+#### Méthode 1 : Export HTML basique
+
+```python
+from quizzmaker import QuizRunner
+
+runner = QuizRunner()
+runner.load_questions("mes_questions.csv")
+
+# Créer un quiz
+runner.create_quiz(num_questions=10)
+
+# Exporter en HTML (toutes les questions sur une page par défaut)
+runner.export_html_quiz("mon_quiz.html")
+```
+
+#### Méthode 2 : Export HTML avec pagination
+
+```python
+from quizzmaker import QuizRunner
+
+runner = QuizRunner()
+runner.load_questions("mes_questions.csv")
+runner.create_quiz(num_questions=20)
+
+# Exporter avec 5 questions par page
+runner.export_html_quiz("mon_quiz.html", questions_per_page=5)
+```
+
+#### Méthode 3 : Filtrer les types de questions
+
+```python
+from quizzmaker import QuizRunner
+
+runner = QuizRunner()
+runner.load_questions("mes_questions.csv")
+
+# Filtrer pour garder seulement les questions Multiple Choice et True/False
+# (exclure Short Answer)
+runner.questions = [
+    q for q in runner.questions
+    if q.type in ["Multiple Choice", "True/False"]
+]
+
+# Créer et exporter le quiz filtré
+runner.create_quiz(num_questions=len(runner.questions))
+runner.export_html_quiz("quiz_mc_tf_only.html")
+```
+
+#### Méthode 4 : Exemples directs (sans menus interactifs)
+
+Pour des scripts automatisés, voir `examples/example_direct_html_export.py` qui contient 9 exemples complets :
+
+```bash
+python examples/example_direct_html_export.py
+```
+
+Exemples inclus :
+- Export basique (toutes questions, une page)
+- Export paginé (5, 10 questions par page)
+- Filtrage par difficulté (Easy, Medium, Hard)
+- Filtrage par section
+- Filtrage par type de question (MC only, TF only, MC+TF)
+- Combinaison de filtres
+- Nom de fichier auto-généré
+- Sélection personnalisée de questions
+
 ---
 
 ## 📝 Format des questions
@@ -280,6 +357,49 @@ for result in summary.results:
         print(f"Erreur sur: {result.question}")
 ```
 
+### Exemple 5 : Export HTML avec filtres multiples
+
+```python
+from quizzmaker import QuizRunner
+
+runner = QuizRunner()
+runner.load_questions("questions.csv")
+
+# Filtrer les types de questions (seulement MC et TF)
+runner.questions = [
+    q for q in runner.questions
+    if q.type in ["Multiple Choice", "True/False"]
+]
+
+# Créer un quiz avec filtre de difficulté
+runner.create_quiz(
+    num_questions=15,
+    difficulty_filter="Medium",
+    shuffle=True
+)
+
+# Exporter avec pagination
+runner.export_html_quiz("medium_mc_tf.html", questions_per_page=5)
+```
+
+### Exemple 6 : Export HTML - Seulement Multiple Choice
+
+```python
+from quizzmaker import QuizRunner
+
+runner = QuizRunner()
+runner.load_questions("questions.csv")
+
+# Garder seulement les questions à choix multiple
+runner.questions = [q for q in runner.questions if q.type == "Multiple Choice"]
+
+print(f"Found {len(runner.questions)} Multiple Choice questions")
+
+# Créer et exporter
+runner.create_quiz(num_questions=len(runner.questions))
+runner.export_html_quiz("only_multiple_choice.html")
+```
+
 ---
 
 ## 🔌 API
@@ -306,9 +426,32 @@ for result in summary.results:
 - `create_quiz(num_questions, section_filter, difficulty_filter, shuffle)` - Crée un quiz
 - `run_quiz()` - Exécute le quiz de manière interactive
 - `save_results(filename)` - Sauvegarde les résultats en JSON
+- `export_html_quiz(filename, questions_per_page)` - **[NOUVEAU]** Exporte le quiz en HTML
 - `show_stats()` - Affiche les statistiques de la base
 - `get_available_sections()` - Liste les sections disponibles
 - `get_available_difficulties()` - Liste les difficultés disponibles
+
+#### Méthode export_html_quiz
+
+```python
+runner.export_html_quiz(filename=None, questions_per_page='all')
+```
+
+**Paramètres :**
+- `filename` (str, optionnel) : Nom du fichier HTML. Si `None`, génère un nom avec timestamp (ex: `quiz_20251024_143022.html`)
+- `questions_per_page` (int ou 'all', défaut: 'all') : Nombre de questions par page, ou 'all' pour une seule page
+
+**Retour :** Chemin du fichier HTML créé
+
+**Fonctionnalités du quiz HTML généré :**
+- ✅ Navigation libre entre les pages (si paginé)
+- ✅ Bouton Submit par question avec validation instantanée
+- ✅ Feedback visuel coloré (vert=correct, rouge=incorrect)
+- ✅ Affichage des explications après soumission
+- ✅ Verrouillage des réponses après soumission
+- ✅ Score final avec analyse par difficulté
+- ✅ Design responsive (mobile et desktop)
+- ✅ Aucune dépendance externe (fonctionne hors ligne)
 
 ---
 
@@ -319,12 +462,15 @@ for result in summary.results:
 1. **Révision avant examen** : Créez des quiz ciblés par chapitre
 2. **Entraînement progressif** : Commencez par les questions faciles, puis augmentez
 3. **Suivi des progrès** : Sauvegardez vos résultats pour analyser votre évolution
+4. **Quiz hors ligne** : Exportez en HTML et étudiez sans connexion internet
 
 ### Pour l'enseignement
 
 1. **Création de tests** : Générez facilement des batteries de questions
 2. **Évaluation formative** : Proposez des quiz d'entraînement à vos étudiants
 3. **Banque de questions** : Maintenez une base centralisée de questions
+4. **Quiz web** : Partagez des quiz HTML avec vos étudiants (par email, LMS, etc.)
+5. **Auto-évaluation** : Les étudiants peuvent s'entraîner de manière autonome
 
 ---
 
