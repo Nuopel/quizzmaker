@@ -1,0 +1,93 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║   🎓 SYSTÈME DE QUIZ INTERACTIF - PAR OÙ COMMENCER ?       ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+📖 LECTURE RECOMMANDÉE (dans cet ordre):
+   1. INDEX.md          ← Vue d'ensemble complète
+   2. QUICKSTART.md     ← Démarrage en 5 minutes
+   3. README.md         ← Documentation complète
+
+🚀 PREMIERS PAS:
+
+   1. Installer pandas:
+      pip install pandas
+
+   2. Tester le système:
+      python test_system.py
+
+   3. Créer des questions d'exemple:
+      python example_create_questions.py
+
+   4. Lancer un quiz interactif:
+      python example_run_quiz.py
+
+   5. Essayer avec des vraies questions:
+      python demo_systems_engineering.py
+
+📁 FICHIERS PRINCIPAUX:
+
+   🔧 Modules (à importer):
+      • models.py
+      • question_generator.py
+      • quiz_runner.py
+
+   ▶️  Scripts (à exécuter):
+      • example_create_questions.py
+      • example_run_quiz.py
+      • demo_systems_engineering.py
+      • test_system.py
+
+   📚 Documentation:
+      • INDEX.md
+      • QUICKSTART.md
+      • README.md
+      • STRUCTURE.md
+
+   📊 Données:
+      • example_python_questions.csv (8 questions)
+      • systems_engineering_concept_questions.csv (51 questions)
+
+💡 WORKFLOW AVEC IA:
+
+   1. Demander à l'IA de générer des questions:
+      "Génère 10 questions sur [SUJET] au format Python
+       avec gen.add_multiple_choice_question(...)"
+
+   2. Copier le code dans un nouveau fichier Python
+
+   3. Exécuter pour créer votre CSV de questions
+
+   4. Utiliser quiz_runner.py pour s'entraîner!
+
+🎯 CAS D'USAGE:
+
+   ✓ Révision avant examen
+   ✓ Auto-évaluation
+   ✓ Création de tests
+   ✓ Formation professionnelle
+   ✓ Base pour application web/mobile
+
+✨ CARACTÉRISTIQUES:
+
+   ✓ 3 types de questions
+   ✓ 3 niveaux de difficulté
+   ✓ Filtres avancés
+   ✓ Randomisation
+   ✓ Statistiques détaillées
+   ✓ Export CSV / Import CSV
+   ✓ Sauvegarde résultats JSON
+   ✓ 100% documenté en français
+
+📞 BESOIN D'AIDE ?
+
+   → Consultez INDEX.md pour trouver rapidement
+   → Lisez QUICKSTART.md pour un démarrage rapide
+   → Explorez README.md pour tout comprendre
+
+═══════════════════════════════════════════════════════════════
+
+              Bon apprentissage! 🚀
+
+═══════════════════════════════════════════════════════════════

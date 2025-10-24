@@ -1,0 +1,4 @@
+id,section,section_title,difficulty,type,question,options,answer,explanation
+1,1.1,Test,Easy,Multiple Choice,Question test?,"[""A"", ""B"", ""C""]",A,Explication test
+2,1.2,Test,Medium,True/False,Vrai ou faux?,"[""True"", ""False""]",True,C'est vrai
+3,2.1,Test,Hard,Short Answer,Expliquez...,[],Réponse attendue,Voici l'explication
