@@ -12,6 +12,7 @@ from typing import List, Dict, Optional
 from pathlib import Path
 
 from quizzmaker.models import Question, QuizResult, QuizSummary
+from quizzmaker.html_exporter import export_quiz_to_html
 
 
 class QuizRunner:
@@ -334,13 +335,13 @@ class QuizRunner:
     def save_results(self, filename: str = "quiz_results.json") -> bool:
         """
         Sauvegarde les résultats du dernier quiz dans un fichier JSON.
-        
+
         Args:
             filename (str): Nom du fichier de destination (défaut: "quiz_results.json")
-            
+
         Returns:
             bool: True si la sauvegarde a réussi
-            
+
         Example:
             >>> runner = QuizRunner()
             >>> # ... exécuter un quiz ...
@@ -349,7 +350,7 @@ class QuizRunner:
         if not self.current_summary:
             print("❌ Aucun résultat à sauvegarder")
             return False
-        
+
         try:
             with open(filename, 'w', encoding='utf-8') as f:
                 json.dump(self.current_summary.to_dict(), f, indent=2, ensure_ascii=False)
@@ -358,6 +359,41 @@ class QuizRunner:
         except Exception as e:
             print(f"❌ Erreur lors de la sauvegarde: {e}")
             return False
+
+    def export_html_quiz(self, filename: str = None, questions_per_page: str = 'all') -> Optional[str]:
+        """
+        Exporte le quiz actuel vers un fichier HTML interactif.
+
+        Args:
+            filename (str): Nom du fichier HTML (auto-généré avec timestamp si None)
+            questions_per_page (Union[int, str]): Nombre de questions par page, ou 'all' pour une seule page
+
+        Returns:
+            Optional[str]: Chemin du fichier HTML créé, None si échec
+
+        Example:
+            >>> runner = QuizRunner()
+            >>> runner.load_questions("questions.csv")
+            >>> runner.create_quiz(num_questions=20)
+            >>> runner.export_html_quiz("mon_quiz.html", questions_per_page=5)
+            >>> # Ou avec toutes les questions sur une page:
+            >>> runner.export_html_quiz("mon_quiz.html")  # Par défaut questions_per_page='all'
+        """
+        if not self.quiz_questions:
+            print("❌ Aucun quiz créé! Utilisez create_quiz() d'abord.")
+            return None
+
+        try:
+            output_path = export_quiz_to_html(
+                self.quiz_questions,
+                filename=filename,
+                questions_per_page=questions_per_page
+            )
+            print(f"✅ Quiz HTML exporté vers: {output_path}")
+            return output_path
+        except Exception as e:
+            print(f"❌ Erreur lors de l'export HTML: {e}")
+            return None
     
     def get_available_sections(self) -> List[str]:
         """
